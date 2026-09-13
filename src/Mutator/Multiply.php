@@ -1,0 +1,18 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Zahran\Mapper\V2\Mutator;
+
+use Zahran\Mapper\V2\Number;
+
+final class Multiply implements Mutator
+{
+    public function apply(mixed $value, array $arguments): mixed
+    {
+        $left = Number::of($value);
+        $right = Number::of($arguments[0] ?? 1);
+
+        return $left === null || $right === null ? null : $left * $right;
+    }
+}

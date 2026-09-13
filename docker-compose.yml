@@ -1,0 +1,15 @@
+services:
+  tests:
+    build:
+      context: .
+      dockerfile: Dockerfile.test
+      args:
+        PHP_VERSION: "8.0"
+    volumes:
+      - .:/app
+      - composer-cache:/root/.composer/cache
+    working_dir: /app
+    command: sh -c "composer install --no-interaction --prefer-dist && composer run-script test"
+
+volumes:
+  composer-cache:
