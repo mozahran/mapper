@@ -6,6 +6,7 @@ namespace Zahran\Mapper\V2;
 
 use Zahran\Mapper\V2\Cast\CastStep;
 use Zahran\Mapper\V2\Cast\CastType;
+use Zahran\Mapper\V2\Condition\Clause;
 use Zahran\Mapper\V2\Condition\ConditionStep;
 use Zahran\Mapper\V2\Exception\InvalidTemplateException;
 use Zahran\Mapper\V2\Mutator\Mutator;
@@ -16,20 +17,51 @@ use Zahran\Mapper\V2\Node\LiteralNode;
 use Zahran\Mapper\V2\Node\Node;
 use Zahran\Mapper\V2\Node\ObjectNode;
 use Zahran\Mapper\V2\Node\ValueNode;
+use Zahran\Mapper\V2\Segment\Current;
+use Zahran\Mapper\V2\Segment\Descendants;
+use Zahran\Mapper\V2\Segment\Filter;
+use Zahran\Mapper\V2\Segment\Key;
+use Zahran\Mapper\V2\Segment\Segment;
+use Zahran\Mapper\V2\Segment\Wildcard;
 
 final class Compiler
 {
     private const TYPE_ARRAY = 'array';
 
+    private const ROOT_NAME = 'root';
+
+    private const DESCENDING = 'desc';
+
     /**
      * @var non-empty-list<string>
      */
-    private const ATTRIBUTE_KEYS = ['name', 'type', 'path', 'paths', 'default', 'cast', 'conditions', 'mutators', 'attributes'];
+    private const ATTRIBUTE_KEYS = [
+        'name', 'type', 'path', 'paths', 'default', 'required',
+        'cast', 'conditions', 'mutators', 'attributes',
+        'where', 'sort', 'distinct', 'offset', 'limit',
+    ];
+
+    /**
+     * The keys that only mean something when there is a list of elements to narrow.
+     *
+     * @var non-empty-list<string>
+     */
+    private const SELECTION_KEYS = ['where', 'sort', 'distinct', 'offset', 'limit'];
 
     /**
      * @var non-empty-list<string>
      */
     private const CONDITION_KEYS = ['condition_type', 'value', 'then', 'otherwise'];
+
+    /**
+     * @var non-empty-list<string>
+     */
+    private const CLAUSE_KEYS = ['path', 'condition_type', 'value'];
+
+    /**
+     * @var non-empty-list<string>
+     */
+    private const ORDER_KEYS = ['path', 'direction'];
 
     /**
      * @var non-empty-list<string>
@@ -41,25 +73,55 @@ final class Compiler
      */
     private const CAST_KEYS = ['type', 'format'];
 
+    /**
+     * @param bool $strict whether casts refuse values they would have to invent an
+     *                     answer for, and list attributes refuse a source that is not
+     *                     a list, instead of quietly coercing either
+     */
     public function __construct(
         private Registry $registry,
+        private bool $strict = false,
     ) {
+    }
+
+    /**
+     * The root is an attribute like any other: give it "attributes" and the mapping
+     * yields an object, give it a "type": "array" and it yields a list, give it a bare
+     * "path" and it yields whatever sits there.
+     *
+     * @param array<array-key, mixed> $template
+     */
+    public function compile(array $template): Node
+    {
+        if (!self::declaresAValue($template)) {
+            self::assertKeys($template, ['name', 'attributes'], '(root)');
+
+            return new ObjectNode(self::ROOT_NAME, $this->compileChildren($template['attributes'] ?? null, 'attributes', ''));
+        }
+
+        return $this->compileNode($template + ['name' => self::ROOT_NAME], '(root)', '');
     }
 
     /**
      * @param array<array-key, mixed> $template
      */
-    public function compile(array $template): ObjectNode
+    private static function declaresAValue(array $template): bool
     {
-        self::assertKeys($template, ['name', 'attributes'], '(root)');
+        foreach (['type', 'path', 'paths', 'default'] as $key) {
+            if (array_key_exists($key, $template)) {
+                return true;
+            }
+        }
 
-        return new ObjectNode('root', $this->compileChildren($template['attributes'] ?? null, 'attributes'));
+        return false;
     }
 
     /**
+     * @param string $parent the dotted name of the attribute these sit under in the
+     *                       output, which their payload errors are reported against
      * @return non-empty-list<Node>
      */
-    private function compileChildren(mixed $attributes, string $context): array
+    private function compileChildren(mixed $attributes, string $context, string $parent): array
     {
         if (!is_array($attributes) || !Arr::isList($attributes) || $attributes === []) {
             throw InvalidTemplateException::at($context, 'must be a non-empty list of attributes.');
@@ -67,13 +129,13 @@ final class Compiler
 
         $nodes = [];
         foreach ($attributes as $index => $attribute) {
-            $nodes[] = $this->compileNode($attribute, "{$context}.{$index}");
+            $nodes[] = $this->compileNode($attribute, "{$context}.{$index}", $parent);
         }
 
         return $nodes;
     }
 
-    private function compileNode(mixed $attribute, string $context): Node
+    private function compileNode(mixed $attribute, string $context, string $parent): Node
     {
         if (!is_array($attribute)) {
             throw InvalidTemplateException::at($context, 'must be an object.');
@@ -91,16 +153,28 @@ final class Compiler
             throw InvalidTemplateException::at("{$context}.type", sprintf('must be "%s" when present.', self::TYPE_ARRAY));
         }
 
+        $output = $parent === '' ? $name : "{$parent}.{$name}";
+
         if ($type === self::TYPE_ARRAY) {
-            return $this->compileList($attribute, $name, $context);
+            return $this->compileList($attribute, $name, $context, $output);
         }
 
         if (array_key_exists('attributes', $attribute)) {
             throw InvalidTemplateException::at("{$context}.attributes", sprintf('is only supported on attributes of type "%s".', self::TYPE_ARRAY));
         }
 
+        foreach (self::SELECTION_KEYS as $key) {
+            if (array_key_exists($key, $attribute)) {
+                throw InvalidTemplateException::at("{$context}.{$key}", sprintf('is only supported on attributes of type "%s".', self::TYPE_ARRAY));
+            }
+        }
+
         if (array_key_exists('path', $attribute) && array_key_exists('paths', $attribute)) {
             throw InvalidTemplateException::at($context, 'must declare either a "path" or a "paths", never both.');
+        }
+
+        if (array_key_exists('required', $attribute) && array_key_exists('default', $attribute)) {
+            throw InvalidTemplateException::at("{$context}.required", 'cannot be combined with a "default", which already stands in for a missing value.');
         }
 
         if (array_key_exists('paths', $attribute)) {
@@ -109,6 +183,8 @@ final class Compiler
                 $this->compileGather($attribute['paths'], "{$context}.paths"),
                 $attribute['default'] ?? null,
                 $this->compilePipeline($attribute, $context, elementWise: false),
+                self::compileRequired($attribute, $context),
+                $output,
             );
         }
 
@@ -117,18 +193,37 @@ final class Compiler
             return new LiteralNode($name, $this->compileLiteral($attribute, $context));
         }
 
+        $compiled = $this->compilePath($path, "{$context}.path", allowLiterals: true);
+
         return new ValueNode(
             $name,
-            $this->compilePath($path, "{$context}.path", allowLiterals: true),
-            $attribute['default'] ?? null,
+            $compiled,
+            self::compileDefault($attribute, $compiled),
             $this->compilePipeline($attribute, $context),
+            self::compileRequired($attribute, $context),
+            $output,
         );
+    }
+
+    /**
+     * A path that can match many values is collection-shaped, so "nothing matched" reads
+     * as an empty list rather than as null unless the template names another default.
+     *
+     * @param array<array-key, mixed> $attribute
+     */
+    private static function compileDefault(array $attribute, Path $path): mixed
+    {
+        if (array_key_exists('default', $attribute)) {
+            return $attribute['default'];
+        }
+
+        return $path->isMultiValued() ? [] : null;
     }
 
     /**
      * @param array<array-key, mixed> $attribute
      */
-    private function compileList(array $attribute, string $name, string $context): ListNode
+    private function compileList(array $attribute, string $name, string $context, string $output): ListNode
     {
         foreach (['paths', 'default', 'cast', 'conditions', 'mutators'] as $key) {
             if (array_key_exists($key, $attribute)) {
@@ -139,11 +234,228 @@ final class Compiler
             }
         }
 
+        // A list attribute without a path maps the scope it already stands on, which is
+        // what a payload that is itself a list of items needs at the root.
+        $path = array_key_exists('path', $attribute)
+            ? $this->compilePath($attribute['path'], "{$context}.path", allowLiterals: false)
+            : Path::identity();
+
         return new ListNode(
             $name,
-            $this->compilePath($attribute['path'] ?? null, "{$context}.path", allowLiterals: false),
-            new ObjectNode($name, $this->compileChildren($attribute['attributes'] ?? null, "{$context}.attributes")),
+            $path,
+            new ObjectNode($name, $this->compileChildren($attribute['attributes'] ?? null, "{$context}.attributes", $output)),
+            $this->compileSelection($attribute, $context),
+            self::compileRequired($attribute, $context),
+            $this->strict,
+            $output,
         );
+    }
+
+    /**
+     * @param array<array-key, mixed> $attribute
+     */
+    private static function compileRequired(array $attribute, string $context): bool
+    {
+        $required = $attribute['required'] ?? false;
+        if (!is_bool($required)) {
+            throw InvalidTemplateException::at("{$context}.required", 'must be a boolean.');
+        }
+
+        return $required;
+    }
+
+    /**
+     * Everything that decides which elements a list attribute maps, and in what order.
+     *
+     * @param array<array-key, mixed> $attribute
+     */
+    private function compileSelection(array $attribute, string $context): ?Selection
+    {
+        $selection = new Selection(
+            $this->compileWhere($attribute['where'] ?? null, "{$context}.where"),
+            $this->compileSort($attribute['sort'] ?? null, "{$context}.sort"),
+            $this->compileDistinct($attribute['distinct'] ?? null, "{$context}.distinct"),
+            self::compileOffset($attribute['offset'] ?? null, "{$context}.offset"),
+            self::compileLimit($attribute['limit'] ?? null, "{$context}.limit"),
+        );
+
+        return $selection->isEmpty() ? null : $selection;
+    }
+
+    /**
+     * One clause, or a list of clauses that must all hold.
+     *
+     * @return list<Clause>
+     */
+    private function compileWhere(mixed $where, string $context): array
+    {
+        if ($where === null) {
+            return [];
+        }
+
+        if (!is_array($where) || $where === []) {
+            throw InvalidTemplateException::at($context, 'must be a clause or a non-empty list of clauses.');
+        }
+
+        $clauses = [];
+        foreach (self::asList($where) as $index => $clause) {
+            $itemContext = Arr::isList($where) ? "{$context}.{$index}" : $context;
+
+            if (!is_array($clause) || Arr::isList($clause)) {
+                throw InvalidTemplateException::at($itemContext, 'must be an object.');
+            }
+
+            self::assertKeys($clause, self::CLAUSE_KEYS, $itemContext);
+
+            $type = $clause['condition_type'] ?? null;
+            if (!is_string($type)) {
+                throw InvalidTemplateException::at("{$itemContext}.condition_type", 'must be a string.');
+            }
+
+            $predicate = $this->registry->condition($type);
+            if ($predicate === null) {
+                throw InvalidTemplateException::at("{$itemContext}.condition_type", sprintf('"%s" is not a registered condition.', $type));
+            }
+
+            $clauses[] = new Clause(
+                $predicate,
+                $this->compileClausePath($clause, "{$itemContext}.path"),
+                $clause['value'] ?? null,
+            );
+        }
+
+        return $clauses;
+    }
+
+    /**
+     * @return list<Order>
+     */
+    private function compileSort(mixed $sort, string $context): array
+    {
+        if ($sort === null) {
+            return [];
+        }
+
+        if (!is_array($sort) || $sort === []) {
+            throw InvalidTemplateException::at($context, 'must be a sort key or a non-empty list of sort keys.');
+        }
+
+        $orders = [];
+        foreach (self::asList($sort) as $index => $key) {
+            $itemContext = Arr::isList($sort) ? "{$context}.{$index}" : $context;
+
+            if (!is_array($key) || Arr::isList($key)) {
+                throw InvalidTemplateException::at($itemContext, 'must be an object.');
+            }
+
+            self::assertKeys($key, self::ORDER_KEYS, $itemContext);
+
+            $direction = $key['direction'] ?? 'asc';
+            if (!is_string($direction) || !in_array(strtolower($direction), ['asc', self::DESCENDING], true)) {
+                throw InvalidTemplateException::at("{$itemContext}.direction", 'must be "asc" or "desc".');
+            }
+
+            $orders[] = new Order(
+                $this->compileClausePath($key, "{$itemContext}.path"),
+                strtolower($direction) === self::DESCENDING,
+            );
+        }
+
+        return $orders;
+    }
+
+    /**
+     * true to keep the first of each identical element, or the path — or paths — whose
+     * values tell two elements apart.
+     *
+     * @return list<Path>|null
+     */
+    private function compileDistinct(mixed $distinct, string $context): ?array
+    {
+        if ($distinct === null || $distinct === false) {
+            return null;
+        }
+
+        if ($distinct === true) {
+            return [Path::identity()];
+        }
+
+        if (!is_array($distinct) || !Arr::isList($distinct) || $distinct === []) {
+            throw InvalidTemplateException::at($context, 'must be true, a path, or a non-empty list of paths.');
+        }
+
+        if (!self::isListOfPaths($distinct)) {
+            return [$this->compilePath($distinct, $context, allowLiterals: false)];
+        }
+
+        $paths = [];
+        foreach ($distinct as $index => $path) {
+            $paths[] = $this->compilePath($path, "{$context}.{$index}", allowLiterals: false);
+        }
+
+        return $paths;
+    }
+
+    /**
+     * @param non-empty-list<mixed> $distinct
+     */
+    private static function isListOfPaths(array $distinct): bool
+    {
+        foreach ($distinct as $entry) {
+            if (!is_array($entry)) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private static function compileOffset(mixed $offset, string $context): int
+    {
+        if ($offset === null) {
+            return 0;
+        }
+
+        if (!is_int($offset)) {
+            throw InvalidTemplateException::at($context, 'must be an integer, negative to count from the end.');
+        }
+
+        return $offset;
+    }
+
+    private static function compileLimit(mixed $limit, string $context): ?int
+    {
+        if ($limit === null) {
+            return null;
+        }
+
+        if (!is_int($limit) || $limit < 0) {
+            throw InvalidTemplateException::at($context, 'must be a non-negative integer.');
+        }
+
+        return $limit;
+    }
+
+    /**
+     * The path a clause or a sort key reads out of an element; absent, it reads the
+     * element itself, which is what a list of scalars needs.
+     *
+     * @param array<array-key, mixed> $declaration
+     */
+    private function compileClausePath(array $declaration, string $context): Path
+    {
+        return array_key_exists('path', $declaration)
+            ? $this->compilePath($declaration['path'], $context, allowLiterals: false)
+            : Path::identity();
+    }
+
+    /**
+     * @param array<array-key, mixed> $declaration
+     * @return array<array-key, mixed>
+     */
+    private static function asList(array $declaration): array
+    {
+        return Arr::isList($declaration) ? $declaration : [$declaration];
     }
 
     /**
@@ -174,7 +486,7 @@ final class Compiler
      */
     private function compileLiteral(array $attribute, string $context): mixed
     {
-        foreach (['cast', 'conditions', 'mutators'] as $key) {
+        foreach (['cast', 'conditions', 'mutators', 'required'] as $key) {
             if (array_key_exists($key, $attribute)) {
                 throw InvalidTemplateException::at("{$context}.{$key}", 'is not supported on attributes without a "path".');
             }
@@ -195,9 +507,12 @@ final class Compiler
             throw InvalidTemplateException::at($context, 'must be a non-empty list of path segments.');
         }
 
-        $selection = null;
-        if (is_array(Arr::last($path))) {
-            $selection = $this->compileSelection(Arr::last($path), $context . '.' . array_key_last($path), $allowLiterals);
+        // A trailing list is the fixed positions to read out of whatever the path
+        // resolved to; a trailing object is a filter, and just another segment.
+        $picks = null;
+        $last = Arr::last($path);
+        if (is_array($last) && Arr::isList($last)) {
+            $picks = $this->compilePicks($last, $context . '.' . array_key_last($path), $allowLiterals);
             array_pop($path);
 
             if ($path === []) {
@@ -207,29 +522,67 @@ final class Compiler
 
         $segments = [];
         foreach ($path as $index => $segment) {
-            if (!is_string($segment) && !is_int($segment)) {
-                throw InvalidTemplateException::at("{$context}.{$index}", 'must be a string or an integer.');
-            }
-            $segments[] = $segment;
+            $segments[] = $this->compileSegment($segment, "{$context}.{$index}");
         }
 
-        return new Path($segments, $selection);
+        return new Path($segments, $picks);
+    }
+
+    private function compileSegment(mixed $segment, string $context): Segment
+    {
+        if ($segment === Current::TOKEN) {
+            return new Current();
+        }
+
+        if ($segment === Wildcard::TOKEN) {
+            return new Wildcard();
+        }
+
+        if ($segment === Descendants::TOKEN) {
+            return new Descendants();
+        }
+
+        if (is_string($segment) || is_int($segment)) {
+            return new Key($segment);
+        }
+
+        if (is_array($segment) && !Arr::isList($segment)) {
+            self::assertKeys($segment, [Filter::KEY], $context);
+
+            $clauses = $this->compileWhere($segment[Filter::KEY] ?? null, "{$context}." . Filter::KEY);
+            if ($clauses === []) {
+                throw InvalidTemplateException::at("{$context}." . Filter::KEY, 'must be a clause or a non-empty list of clauses.');
+            }
+
+            return new Filter($clauses);
+        }
+
+        throw InvalidTemplateException::at(
+            $context,
+            sprintf(
+                'must be a key, "%s" for the value itself, "%s" for every value, "%s" for every descendant, or a {"%s": …} filter.',
+                Current::TOKEN,
+                Wildcard::TOKEN,
+                Descendants::TOKEN,
+                Filter::KEY,
+            ),
+        );
     }
 
     /**
-     * @param array<array-key, mixed> $selection
+     * @param array<array-key, mixed> $picks
      * @return non-empty-list<int|Literal>
      */
-    private function compileSelection(array $selection, string $context, bool $allowLiterals): array
+    private function compilePicks(array $picks, string $context, bool $allowLiterals): array
     {
-        if (!Arr::isList($selection) || $selection === []) {
+        if ($picks === []) {
             throw InvalidTemplateException::at($context, 'must be a non-empty list of indices.');
         }
 
-        $picks = [];
-        foreach ($selection as $index => $pick) {
+        $compiled = [];
+        foreach ($picks as $index => $pick) {
             if (is_int($pick)) {
-                $picks[] = $pick;
+                $compiled[] = $pick;
                 continue;
             }
 
@@ -240,19 +593,19 @@ final class Compiler
                         'hard-coded values can only be appended when selecting values, not list items.',
                     );
                 }
-                $picks[] = new Literal(self::literalValue($pick));
+                $compiled[] = new Literal(self::literalValue($pick));
                 continue;
             }
 
             if (is_string($pick) && ctype_digit($pick)) {
-                $picks[] = (int) $pick;
+                $compiled[] = (int) $pick;
                 continue;
             }
 
             throw InvalidTemplateException::at("{$context}.{$index}", 'must be an index or a "$"-prefixed hard-coded value.');
         }
 
-        return $picks;
+        return $compiled;
     }
 
     /**
@@ -407,7 +760,7 @@ final class Compiler
             throw InvalidTemplateException::at("{$context}.format", sprintf('is required when casting to "%s".', CastType::Date()->value));
         }
 
-        return [new CastStep($resolved, $format)];
+        return [new CastStep($resolved, $type, $format, $this->strict)];
     }
 
     private static function literalValue(mixed $value): mixed

@@ -107,9 +107,9 @@ final class TemplateValidationTest extends TestCase
             '{"attributes": [{"name": "A", "paths": [["a"], []]}]}',
             'at "attributes.0.paths.1": must be a non-empty list of path segments.',
         ];
-        yield 'a gathered segment that is not a string or an integer' => [
+        yield 'a gathered segment of an unknown kind' => [
             '{"attributes": [{"name": "A", "paths": [["a"], [true]]}]}',
-            'at "attributes.0.paths.1.0": must be a string or an integer.',
+            'at "attributes.0.paths.1.0": must be a key, "@" for the value itself, "*" for every value, "**" for every descendant, or a {"where": …} filter.',
         ];
         yield 'paths on an array attribute' => [
             '{"attributes": [{"name": "A", "type": "array", "path": ["a"], "paths": [["b"]], "attributes": [{"name": "B", "path": ["b"]}]}]}',
@@ -127,9 +127,9 @@ final class TemplateValidationTest extends TestCase
             '{"attributes": [{"name": "A", "path": []}]}',
             'at "attributes.0.path": must be a non-empty list of path segments.',
         ];
-        yield 'path segment of the wrong type' => [
+        yield 'path segment of an unknown kind' => [
             '{"attributes": [{"name": "A", "path": [true]}]}',
-            'at "attributes.0.path.0": must be a string or an integer.',
+            'at "attributes.0.path.0": must be a key, "@" for the value itself, "*" for every value, "**" for every descendant, or a {"where": …} filter.',
         ];
         yield 'selection with no source path' => [
             '{"attributes": [{"name": "A", "path": [[0, 1]]}]}',
@@ -194,6 +194,82 @@ final class TemplateValidationTest extends TestCase
         yield 'non-string cast format' => [
             '{"attributes": [{"name": "A", "path": ["a"], "cast": {"type": "string", "format": 5}}]}',
             'at "attributes.0.cast.format": must be a string.',
+        ];
+        yield 'where on a value attribute' => [
+            '{"attributes": [{"name": "A", "path": ["a"], "where": {"condition_type": "notnull"}}]}',
+            'at "attributes.0.where": is only supported on attributes of type "array".',
+        ];
+        yield 'limit on a value attribute' => [
+            '{"attributes": [{"name": "A", "path": ["a"], "limit": 1}]}',
+            'at "attributes.0.limit": is only supported on attributes of type "array".',
+        ];
+        yield 'required alongside a default' => [
+            '{"attributes": [{"name": "A", "path": ["a"], "required": true, "default": "x"}]}',
+            'at "attributes.0.required": cannot be combined with a "default", which already stands in for a missing value.',
+        ];
+        yield 'required without a path' => [
+            '{"attributes": [{"name": "A", "required": true}]}',
+            'at "attributes.0.required": is not supported on attributes without a "path".',
+        ];
+        yield 'required that is not a boolean' => [
+            '{"attributes": [{"name": "A", "path": ["a"], "required": "yes"}]}',
+            'at "attributes.0.required": must be a boolean.',
+        ];
+        yield 'an empty where' => [
+            '{"attributes": [{"name": "A", "type": "array", "path": ["a"], "where": [], "attributes": [{"name": "B", "path": ["b"]}]}]}',
+            'at "attributes.0.where": must be a clause or a non-empty list of clauses.',
+        ];
+        yield 'a clause that is not an object' => [
+            '{"attributes": [{"name": "A", "type": "array", "path": ["a"], "where": ["nope"], "attributes": [{"name": "B", "path": ["b"]}]}]}',
+            'at "attributes.0.where.0": must be an object.',
+        ];
+        yield 'unknown clause key' => [
+            '{"attributes": [{"name": "A", "type": "array", "path": ["a"], "where": {"condition_type": "eq", "then": 1}, "attributes": [{"name": "B", "path": ["b"]}]}]}',
+            'at "attributes.0.where": "then" is not a supported key here',
+        ];
+        yield 'a clause without a condition type' => [
+            '{"attributes": [{"name": "A", "type": "array", "path": ["a"], "where": {"path": ["b"]}, "attributes": [{"name": "B", "path": ["b"]}]}]}',
+            'at "attributes.0.where.condition_type": must be a string.',
+        ];
+        yield 'a clause with an unregistered condition' => [
+            '{"attributes": [{"name": "A", "type": "array", "path": ["a"], "where": {"condition_type": "matches"}, "attributes": [{"name": "B", "path": ["b"]}]}]}',
+            'at "attributes.0.where.condition_type": "matches" is not a registered condition.',
+        ];
+        yield 'an empty sort' => [
+            '{"attributes": [{"name": "A", "type": "array", "path": ["a"], "sort": [], "attributes": [{"name": "B", "path": ["b"]}]}]}',
+            'at "attributes.0.sort": must be a sort key or a non-empty list of sort keys.',
+        ];
+        yield 'unknown sort key' => [
+            '{"attributes": [{"name": "A", "type": "array", "path": ["a"], "sort": {"path": ["b"], "order": "desc"}, "attributes": [{"name": "B", "path": ["b"]}]}]}',
+            'at "attributes.0.sort": "order" is not a supported key here',
+        ];
+        yield 'an unknown sort direction' => [
+            '{"attributes": [{"name": "A", "type": "array", "path": ["a"], "sort": {"path": ["b"], "direction": "up"}, "attributes": [{"name": "B", "path": ["b"]}]}]}',
+            'at "attributes.0.sort.direction": must be "asc" or "desc".',
+        ];
+        yield 'a distinct that is neither true nor a path' => [
+            '{"attributes": [{"name": "A", "type": "array", "path": ["a"], "distinct": "sku", "attributes": [{"name": "B", "path": ["b"]}]}]}',
+            'at "attributes.0.distinct": must be true, a path, or a non-empty list of paths.',
+        ];
+        yield 'an offset that is not an integer' => [
+            '{"attributes": [{"name": "A", "type": "array", "path": ["a"], "offset": "1", "attributes": [{"name": "B", "path": ["b"]}]}]}',
+            'at "attributes.0.offset": must be an integer, negative to count from the end.',
+        ];
+        yield 'a negative limit' => [
+            '{"attributes": [{"name": "A", "type": "array", "path": ["a"], "limit": -1, "attributes": [{"name": "B", "path": ["b"]}]}]}',
+            'at "attributes.0.limit": must be a non-negative integer.',
+        ];
+        yield 'unknown key in a filter segment' => [
+            '{"attributes": [{"name": "A", "path": ["items", {"filter": {"condition_type": "notnull"}}, "sku"]}]}',
+            'at "attributes.0.path.1": "filter" is not a supported key here, expected one of: where.',
+        ];
+        yield 'a filter segment with nothing to filter by' => [
+            '{"attributes": [{"name": "A", "path": ["items", {"where": null}, "sku"]}]}',
+            'at "attributes.0.path.1.where": must be a clause or a non-empty list of clauses.',
+        ];
+        yield 'an unusable path inside a clause' => [
+            '{"attributes": [{"name": "A", "type": "array", "path": ["a"], "where": {"path": [], "condition_type": "notnull"}, "attributes": [{"name": "B", "path": ["b"]}]}]}',
+            'at "attributes.0.where.path": must be a non-empty list of path segments.',
         ];
         yield 'date cast without a format' => [
             '{"attributes": [{"name": "A", "path": ["a"], "cast": {"type": "date"}}]}',

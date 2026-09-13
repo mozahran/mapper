@@ -7,7 +7,7 @@ namespace Zahran\Mapper\V2\Cast;
 use Zahran\Mapper\V2\Enumeration;
 use Zahran\Mapper\V2\Text;
 
-final class CastType implements Cast
+final class CastType implements Cast, Validating
 {
     use Enumeration;
 
@@ -62,6 +62,45 @@ final class CastType implements Cast
             self::STRINGIFY => Text::of($value),
             self::DATE => self::toDate($value, $format),
         };
+    }
+
+    /**
+     * Whether the cast can carry this value over without inventing one.
+     *
+     * The bar is faithfulness, not convertibility: PHP will happily turn "abc" into 0
+     * and the string "false" into true, and those are exactly the silent answers a
+     * strict mapping is asking to be spared.
+     */
+    public function accepts(mixed $value): bool
+    {
+        return match ($this->value) {
+            self::BOOLEAN => is_bool($value) || self::isOneOf($value, [0, 1, '0', '1']),
+            self::INTEGER => is_bool($value) || self::isWholeNumber($value),
+            self::FLOATING_POINT_NUMBER => is_bool($value) || is_int($value) || is_float($value) || (is_string($value) && is_numeric($value)),
+            self::STRINGIFY => is_scalar($value) || $value instanceof \Stringable,
+            self::DATE => (is_string($value) || $value instanceof \Stringable) && trim(Text::of($value)) !== '',
+        };
+    }
+
+    /**
+     * @param non-empty-list<int|string> $accepted
+     */
+    private static function isOneOf(mixed $value, array $accepted): bool
+    {
+        return (is_int($value) || is_string($value)) && in_array($value, $accepted, true);
+    }
+
+    private static function isWholeNumber(mixed $value): bool
+    {
+        if (is_int($value)) {
+            return true;
+        }
+
+        if (is_float($value)) {
+            return is_finite($value) && $value == (int) $value;
+        }
+
+        return is_string($value) && is_numeric($value) && $value == (int) $value;
     }
 
     private static function toDate(mixed $value, ?string $format): ?string
