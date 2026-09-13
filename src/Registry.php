@@ -2,20 +2,20 @@
 
 declare(strict_types=1);
 
-namespace Zahran\Mapper\V2;
+namespace Zahran\Mapper;
 
-use Zahran\Mapper\V2\Cast\Cast;
-use Zahran\Mapper\V2\Cast\CastType;
-use Zahran\Mapper\V2\Condition\ConditionType;
-use Zahran\Mapper\V2\Condition\Predicate;
-use Zahran\Mapper\V2\Mutator\Add;
-use Zahran\Mapper\V2\Mutator\Divide;
-use Zahran\Mapper\V2\Mutator\Modulo;
-use Zahran\Mapper\V2\Mutator\Multiply;
-use Zahran\Mapper\V2\Mutator\Mutator;
-use Zahran\Mapper\V2\Mutator\NativeFunction;
-use Zahran\Mapper\V2\Mutator\Power;
-use Zahran\Mapper\V2\Mutator\Subtract;
+use Zahran\Mapper\Cast\Cast;
+use Zahran\Mapper\Cast\CastType;
+use Zahran\Mapper\Condition\ConditionType;
+use Zahran\Mapper\Condition\Predicate;
+use Zahran\Mapper\Mutator\Add;
+use Zahran\Mapper\Mutator\Divide;
+use Zahran\Mapper\Mutator\Modulo;
+use Zahran\Mapper\Mutator\Multiply;
+use Zahran\Mapper\Mutator\Mutator;
+use Zahran\Mapper\Mutator\NativeFunction;
+use Zahran\Mapper\Mutator\Power;
+use Zahran\Mapper\Mutator\Subtract;
 
 final class Registry
 {

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Zahran\Mapper\V2\Exception;
+namespace Zahran\Mapper\Exception;
 
 interface MappingException extends \Throwable
 {

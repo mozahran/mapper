@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace Zahran\Mapper\V2\Tests;
+namespace Zahran\Mapper\Tests;
 
 use PHPUnit\Framework\TestCase;
-use Zahran\Mapper\V2\Cast\CastType;
-use Zahran\Mapper\V2\Condition\ConditionType;
+use Zahran\Mapper\Cast\CastType;
+use Zahran\Mapper\Condition\ConditionType;
 
 /**
  * The cast and condition types stand in for PHP 8.1 enums, so they have to keep the
@@ -36,7 +36,7 @@ final class EnumerationTest extends TestCase
     public function testFromRejectsAnUnknownValue(): void
     {
         $this->expectException(\ValueError::class);
-        $this->expectExceptionMessage('"cents" is not a valid value for Zahran\Mapper\V2\Cast\CastType.');
+        $this->expectExceptionMessage('"cents" is not a valid value for Zahran\Mapper\Cast\CastType.');
 
         CastType::from('cents');
     }

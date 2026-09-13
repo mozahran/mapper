@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Zahran\Mapper\V2\Condition;
+namespace Zahran\Mapper\Condition;
 
-use Zahran\Mapper\V2\Enumeration;
-use Zahran\Mapper\V2\Text;
+use Zahran\Mapper\Enumeration;
+use Zahran\Mapper\Text;
 
 final class ConditionType implements Predicate
 {

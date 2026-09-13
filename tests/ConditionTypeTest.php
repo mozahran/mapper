@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Zahran\Mapper\V2\Tests;
+namespace Zahran\Mapper\Tests;
 
 use PHPUnit\Framework\TestCase;
-use Zahran\Mapper\V2\Condition\ConditionType;
+use Zahran\Mapper\Condition\ConditionType;
 
 final class ConditionTypeTest extends TestCase
 {

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Zahran\Mapper\V2;
+namespace Zahran\Mapper;
 
 /**
  * The slice of PHP 8.1's enum API this library relies on, written for PHP 8.0.

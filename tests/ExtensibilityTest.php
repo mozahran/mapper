@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace Zahran\Mapper\V2\Tests;
+namespace Zahran\Mapper\Tests;
 
 use PHPUnit\Framework\TestCase;
-use Zahran\Mapper\V2\Cast\Cast;
-use Zahran\Mapper\V2\Condition\Predicate;
-use Zahran\Mapper\V2\Exception\InvalidTemplateException;
-use Zahran\Mapper\V2\Mapper;
-use Zahran\Mapper\V2\Mutator\Mutator;
+use Zahran\Mapper\Cast\Cast;
+use Zahran\Mapper\Condition\Predicate;
+use Zahran\Mapper\Exception\InvalidTemplateException;
+use Zahran\Mapper\Mapper;
+use Zahran\Mapper\Mutator\Mutator;
 
 final class ExtensibilityTest extends TestCase
 {

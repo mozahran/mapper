@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Zahran\Mapper\V2\Tests;
+namespace Zahran\Mapper\Tests;
 
 use PHPUnit\Framework\TestCase;
-use Zahran\Mapper\V2\Cast\CastType;
+use Zahran\Mapper\Cast\CastType;
 
 final class CastTypeTest extends TestCase
 {

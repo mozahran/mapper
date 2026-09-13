@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Zahran\Mapper\V2\Mutator;
+namespace Zahran\Mapper\Mutator;
 
 /**
  * Calls a PHP function named by the mapping template.
