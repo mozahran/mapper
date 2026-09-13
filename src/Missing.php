@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Zahran\Mapper\V2;
+namespace Zahran\Mapper;
 
 /**
  * The sentinel a path returns when the payload has no value at all, as distinct from

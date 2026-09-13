@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Zahran\Mapper\V2\Tests;
+namespace Zahran\Mapper\Tests;
 
 use PHPUnit\Framework\TestCase;
-use Zahran\Mapper\V2\Mapper;
+use Zahran\Mapper\Mapper;
 
 /**
  * Paths that resolve by content rather than by position: wildcards, recursive descent,

@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace Zahran\Mapper\V2\Tests;
+namespace Zahran\Mapper\Tests;
 
 use PHPUnit\Framework\TestCase;
-use Zahran\Mapper\V2\Exception\InvalidJsonException;
-use Zahran\Mapper\V2\Exception\InvalidTemplateException;
-use Zahran\Mapper\V2\Exception\MappingException;
-use Zahran\Mapper\V2\Mapper;
+use Zahran\Mapper\Exception\InvalidJsonException;
+use Zahran\Mapper\Exception\InvalidTemplateException;
+use Zahran\Mapper\Exception\MappingException;
+use Zahran\Mapper\Mapper;
 
 final class TemplateValidationTest extends TestCase
 {

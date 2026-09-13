@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Zahran\Mapper\V2\Segment;
+namespace Zahran\Mapper\Segment;
 
 /**
  * "**" — the scope itself and every value nested anywhere beneath it, so that

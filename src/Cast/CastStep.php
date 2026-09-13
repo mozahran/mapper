@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Zahran\Mapper\V2\Cast;
+namespace Zahran\Mapper\Cast;
 
-use Zahran\Mapper\V2\Exception\InvalidPayloadException;
-use Zahran\Mapper\V2\Step;
+use Zahran\Mapper\Exception\InvalidPayloadException;
+use Zahran\Mapper\Step;
 
 final class CastStep implements Step
 {

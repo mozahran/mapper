@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Zahran\Mapper\V2;
+namespace Zahran\Mapper;
 
-use Zahran\Mapper\V2\Node\Node;
+use Zahran\Mapper\Node\Node;
 
 final class CompiledMapping
 {

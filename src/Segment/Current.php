@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Zahran\Mapper\V2\Segment;
+namespace Zahran\Mapper\Segment;
 
 /**
  * "@" — the scope itself, which is how an attribute inside a list of scalars names the

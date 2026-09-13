@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace Zahran\Mapper\V2\Node;
+namespace Zahran\Mapper\Node;
 
-use Zahran\Mapper\V2\Exception\InvalidPayloadException;
-use Zahran\Mapper\V2\Missing;
-use Zahran\Mapper\V2\Pipeline;
-use Zahran\Mapper\V2\Source;
+use Zahran\Mapper\Exception\InvalidPayloadException;
+use Zahran\Mapper\Missing;
+use Zahran\Mapper\Pipeline;
+use Zahran\Mapper\Source;
 
 final class ValueNode implements Node
 {

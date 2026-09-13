@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Zahran\Mapper\V2\Tests;
+namespace Zahran\Mapper\Tests;
 
 use PHPUnit\Framework\TestCase;
-use Zahran\Mapper\V2\Mapper;
+use Zahran\Mapper\Mapper;
 
 /**
  * The root is an attribute like any other, so a mapping is not forced to end in an

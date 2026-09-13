@@ -2,27 +2,27 @@
 
 declare(strict_types=1);
 
-namespace Zahran\Mapper\V2;
+namespace Zahran\Mapper;
 
-use Zahran\Mapper\V2\Cast\CastStep;
-use Zahran\Mapper\V2\Cast\CastType;
-use Zahran\Mapper\V2\Condition\Clause;
-use Zahran\Mapper\V2\Condition\ConditionStep;
-use Zahran\Mapper\V2\Exception\InvalidTemplateException;
-use Zahran\Mapper\V2\Mutator\Mutator;
-use Zahran\Mapper\V2\Mutator\MutatorStep;
-use Zahran\Mapper\V2\Mutator\NativeFunction;
-use Zahran\Mapper\V2\Node\ListNode;
-use Zahran\Mapper\V2\Node\LiteralNode;
-use Zahran\Mapper\V2\Node\Node;
-use Zahran\Mapper\V2\Node\ObjectNode;
-use Zahran\Mapper\V2\Node\ValueNode;
-use Zahran\Mapper\V2\Segment\Current;
-use Zahran\Mapper\V2\Segment\Descendants;
-use Zahran\Mapper\V2\Segment\Filter;
-use Zahran\Mapper\V2\Segment\Key;
-use Zahran\Mapper\V2\Segment\Segment;
-use Zahran\Mapper\V2\Segment\Wildcard;
+use Zahran\Mapper\Cast\CastStep;
+use Zahran\Mapper\Cast\CastType;
+use Zahran\Mapper\Condition\Clause;
+use Zahran\Mapper\Condition\ConditionStep;
+use Zahran\Mapper\Exception\InvalidTemplateException;
+use Zahran\Mapper\Mutator\Mutator;
+use Zahran\Mapper\Mutator\MutatorStep;
+use Zahran\Mapper\Mutator\NativeFunction;
+use Zahran\Mapper\Node\ListNode;
+use Zahran\Mapper\Node\LiteralNode;
+use Zahran\Mapper\Node\Node;
+use Zahran\Mapper\Node\ObjectNode;
+use Zahran\Mapper\Node\ValueNode;
+use Zahran\Mapper\Segment\Current;
+use Zahran\Mapper\Segment\Descendants;
+use Zahran\Mapper\Segment\Filter;
+use Zahran\Mapper\Segment\Key;
+use Zahran\Mapper\Segment\Segment;
+use Zahran\Mapper\Segment\Wildcard;
 
 final class Compiler
 {

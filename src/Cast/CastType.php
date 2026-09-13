@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Zahran\Mapper\V2\Cast;
+namespace Zahran\Mapper\Cast;
 
-use Zahran\Mapper\V2\Enumeration;
-use Zahran\Mapper\V2\Text;
+use Zahran\Mapper\Enumeration;
+use Zahran\Mapper\Text;
 
 final class CastType implements Cast, Validating
 {

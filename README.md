@@ -8,7 +8,7 @@ validated when they compile, so a broken template fails once, up front, with the
 the problem — never silently, one payload at a time.
 
 ```php
-use Zahran\Mapper\V2\Mapper;
+use Zahran\Mapper\Mapper;
 
 $mapper  = Mapper::default();
 $mapping = $mapper->compile($template);   // validate once
@@ -37,7 +37,7 @@ Requires PHP 8.0 or newer and `ext-json`. Tested on 8.0 through 8.5.
 ## A first mapping
 
 ```php
-use Zahran\Mapper\V2\Mapper;
+use Zahran\Mapper\Mapper;
 
 $payload = '{
     "order_id": 91,
@@ -654,7 +654,7 @@ the attribute, with the original kept as `previous`:
 Every `with*()` method returns a new mapper and leaves the original alone.
 
 ```php
-use Zahran\Mapper\V2\Condition\Predicate;
+use Zahran\Mapper\Condition\Predicate;
 
 $mapper = Mapper::default()->withCondition('starts_with', new class implements Predicate {
     public function matches(mixed $value, mixed $compare): bool
@@ -672,8 +672,8 @@ $mapper = Mapper::default()->withCondition('starts_with', new class implements P
 Custom conditions work anywhere a condition does, including `where` clauses.
 
 ```php
-use Zahran\Mapper\V2\Cast\Cast;
-use Zahran\Mapper\V2\Cast\Validating;
+use Zahran\Mapper\Cast\Cast;
+use Zahran\Mapper\Cast\Validating;
 
 // Implementing Validating as well is optional: it is what a strict mapper asks before
 // handing the cast a value. A cast that does not implement it is trusted with anything.
@@ -693,7 +693,7 @@ $mapper = Mapper::default()->withCast('cents', new class implements Cast, Valida
 ```
 
 ```php
-use Zahran\Mapper\V2\Mutator\Mutator;
+use Zahran\Mapper\Mutator\Mutator;
 
 $mapper = Mapper::default()->withMutator('suffix', new class implements Mutator {
     public function apply(mixed $value, array $arguments): mixed

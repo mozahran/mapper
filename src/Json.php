@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Zahran\Mapper\V2;
+namespace Zahran\Mapper;
 
-use Zahran\Mapper\V2\Exception\InvalidJsonException;
+use Zahran\Mapper\Exception\InvalidJsonException;
 
 /**
  * @internal

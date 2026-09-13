@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Zahran\Mapper\V2\Mutator;
+namespace Zahran\Mapper\Mutator;
 
-use Zahran\Mapper\V2\Number;
+use Zahran\Mapper\Number;
 
 /**
  * Raises the piped value to the power of the argument: value ** argument.

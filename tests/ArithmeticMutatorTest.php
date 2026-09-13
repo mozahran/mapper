@@ -2,17 +2,17 @@
 
 declare(strict_types=1);
 
-namespace Zahran\Mapper\V2\Tests;
+namespace Zahran\Mapper\Tests;
 
 use PHPUnit\Framework\TestCase;
-use Zahran\Mapper\V2\Mapper;
-use Zahran\Mapper\V2\Mutator\Add;
-use Zahran\Mapper\V2\Mutator\Divide;
-use Zahran\Mapper\V2\Mutator\Modulo;
-use Zahran\Mapper\V2\Mutator\Multiply;
-use Zahran\Mapper\V2\Mutator\Mutator;
-use Zahran\Mapper\V2\Mutator\Power;
-use Zahran\Mapper\V2\Mutator\Subtract;
+use Zahran\Mapper\Mapper;
+use Zahran\Mapper\Mutator\Add;
+use Zahran\Mapper\Mutator\Divide;
+use Zahran\Mapper\Mutator\Modulo;
+use Zahran\Mapper\Mutator\Multiply;
+use Zahran\Mapper\Mutator\Mutator;
+use Zahran\Mapper\Mutator\Power;
+use Zahran\Mapper\Mutator\Subtract;
 
 final class ArithmeticMutatorTest extends TestCase
 {

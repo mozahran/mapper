@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace Zahran\Mapper\V2\Tests;
+namespace Zahran\Mapper\Tests;
 
 use PHPUnit\Framework\TestCase;
-use Zahran\Mapper\V2\Cast\Cast;
-use Zahran\Mapper\V2\Cast\Validating;
-use Zahran\Mapper\V2\Exception\InvalidPayloadException;
-use Zahran\Mapper\V2\Exception\MappingException;
-use Zahran\Mapper\V2\Mapper;
+use Zahran\Mapper\Cast\Cast;
+use Zahran\Mapper\Cast\Validating;
+use Zahran\Mapper\Exception\InvalidPayloadException;
+use Zahran\Mapper\Exception\MappingException;
+use Zahran\Mapper\Mapper;
 
 /**
  * What the mapper checks about the payload rather than about the template: attributes

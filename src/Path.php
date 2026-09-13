@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Zahran\Mapper\V2;
+namespace Zahran\Mapper;
 
-use Zahran\Mapper\V2\Segment\Segment;
+use Zahran\Mapper\Segment\Segment;
 
 /**
  * Walks the payload one segment at a time.

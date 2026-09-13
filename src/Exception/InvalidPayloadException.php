@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Zahran\Mapper\V2\Exception;
+namespace Zahran\Mapper\Exception;
 
 /**
  * A problem with the payload rather than with the template: raised while mapping, where

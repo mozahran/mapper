@@ -18,12 +18,12 @@
     },
     "autoload": {
         "psr-4": {
-            "Zahran\\Mapper\\V2\\": "src/"
+            "Zahran\\Mapper\\": "src/"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "Zahran\\Mapper\\V2\\Tests\\": "tests/"
+            "Zahran\\Mapper\\Tests\\": "tests/"
         }
     },
     "scripts": {

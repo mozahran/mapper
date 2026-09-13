@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Zahran\Mapper\V2\Segment;
+namespace Zahran\Mapper\Segment;
 
 /**
  * "*" — every value one level down, whether the scope is a list or a map.

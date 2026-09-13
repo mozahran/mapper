@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Zahran\Mapper\V2;
+namespace Zahran\Mapper;
 
-use Zahran\Mapper\V2\Condition\Clause;
+use Zahran\Mapper\Condition\Clause;
 
 /**
  * Which elements of a source array a list attribute maps, in what order, and how many —

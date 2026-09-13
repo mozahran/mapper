@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Zahran\Mapper\V2\Cast;
+namespace Zahran\Mapper\Cast;
 
 /**
  * A cast that can say, before it runs, whether a value is one it can carry over

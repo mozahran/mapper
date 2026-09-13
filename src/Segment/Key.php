@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Zahran\Mapper\V2\Segment;
+namespace Zahran\Mapper\Segment;
 
-use Zahran\Mapper\V2\Arr;
+use Zahran\Mapper\Arr;
 
 /**
  * A literal key lookup: "customer", or 0.

@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace Zahran\Mapper\V2\Tests;
+namespace Zahran\Mapper\Tests;
 
 use PHPUnit\Framework\TestCase;
-use Zahran\Mapper\V2\Exception\InvalidTemplateException;
-use Zahran\Mapper\V2\Mapper;
-use Zahran\Mapper\V2\Mutator\NativeFunction;
+use Zahran\Mapper\Exception\InvalidTemplateException;
+use Zahran\Mapper\Mapper;
+use Zahran\Mapper\Mutator\NativeFunction;
 
 final class NativeFunctionTest extends TestCase
 {

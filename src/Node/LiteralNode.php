@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Zahran\Mapper\V2\Node;
+namespace Zahran\Mapper\Node;
 
 final class LiteralNode implements Node
 {

@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace Zahran\Mapper\V2;
+namespace Zahran\Mapper;
 
-use Zahran\Mapper\V2\Cast\Cast;
-use Zahran\Mapper\V2\Condition\Predicate;
-use Zahran\Mapper\V2\Mutator\Mutator;
+use Zahran\Mapper\Cast\Cast;
+use Zahran\Mapper\Condition\Predicate;
+use Zahran\Mapper\Mutator\Mutator;
 
 final class Mapper
 {

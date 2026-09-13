@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Zahran\Mapper\V2\Condition;
+namespace Zahran\Mapper\Condition;
 
-use Zahran\Mapper\V2\Missing;
-use Zahran\Mapper\V2\Path;
+use Zahran\Mapper\Missing;
+use Zahran\Mapper\Path;
 
 /**
  * One content test applied to an element: the value at a path inside it, weighed

@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace Zahran\Mapper\V2\Node;
+namespace Zahran\Mapper\Node;
 
-use Zahran\Mapper\V2\Exception\InvalidPayloadException;
-use Zahran\Mapper\V2\Missing;
-use Zahran\Mapper\V2\Path;
-use Zahran\Mapper\V2\Selection;
+use Zahran\Mapper\Exception\InvalidPayloadException;
+use Zahran\Mapper\Missing;
+use Zahran\Mapper\Path;
+use Zahran\Mapper\Selection;
 
 final class ListNode implements Node
 {

@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Zahran\Mapper\V2\Condition;
+namespace Zahran\Mapper\Condition;
 
-use Zahran\Mapper\V2\Step;
+use Zahran\Mapper\Step;
 
 final class ConditionStep implements Step
 {
